@@ -8,7 +8,9 @@ The notebook follows a complete machine learning workflow:
 
 **EDA → Categorical Encoding → Train/Validation Split → Baseline Model → Nonlinear Models → Cross-Validation → Model Comparison → Test Prediction → Kaggle Submission**
 
-\---
+The final CatBoost submission scored **RMSE 202.83542 on the Kaggle leaderboard and ranked 8th**.
+
+---
 
 ## Objective
 
@@ -18,7 +20,7 @@ The primary evaluation metric used in the notebook is **Root Mean Squared Error 
 
 > Lower RMSE indicates better predictive performance.
 
-\---
+---
 
 ## Dataset
 
@@ -47,7 +49,7 @@ The notebook reports **no missing values** and **no duplicate rows** in the trai
 |Median|545|
 |Maximum|3,556|
 
-\---
+---
 
 ## Exploratory Data Analysis
 
@@ -63,7 +65,7 @@ The notebook performs several EDA steps:
 
 This provides an initial understanding of feature distributions, relationships, and data quality before modeling.
 
-\---
+---
 
 ## Preprocessing
 
@@ -78,7 +80,7 @@ The `id` column is excluded from model training because it serves as an identifi
 
 After encoding, the model input contains **14 features**.
 
-\---
+---
 
 ## Train / Validation Split
 
@@ -90,18 +92,18 @@ The encoded dataset is divided into:
 The split uses:
 
 ```python
-random\\\\\\\_state=42
+random_state=42
 ```
 
 The notebook uses the validation portion to compare model performance before generating the final competition predictions.
 
-\---
+---
 
 ## Models
 
 Several regression approaches were evaluated, starting with a simple linear baseline and progressing to nonlinear ensemble models.
 
-### 1\. Linear Regression
+### 1. Linear Regression
 
 Used as the baseline model to establish a simple linear reference.
 
@@ -109,9 +111,9 @@ Used as the baseline model to establish a simple linear reference.
 
 `429.323`
 
-\---
+---
 
-### 2\. Polynomial Regression
+### 2. Polynomial Regression
 
 A degree-4 polynomial transformation was combined with Linear Regression to capture nonlinear relationships.
 
@@ -119,9 +121,9 @@ A degree-4 polynomial transformation was combined with Linear Regression to capt
 
 `383.327`
 
-\---
+---
 
-### 3\. Random Forest Regressor
+### 3. Random Forest Regressor
 
 A tree-based ensemble model capable of learning nonlinear relationships and feature interactions.
 
@@ -129,9 +131,9 @@ A tree-based ensemble model capable of learning nonlinear relationships and feat
 
 `219.537`
 
-\---
+---
 
-### 4\. XGBoost Regressor
+### 4. XGBoost Regressor
 
 A gradient-boosting model using sequential decision trees.
 
@@ -139,9 +141,9 @@ A gradient-boosting model using sequential decision trees.
 
 `210.585`
 
-\---
+---
 
-### 5\. CatBoost Regressor
+### 5. CatBoost Regressor
 
 A gradient-boosting model evaluated with the encoded feature representation.
 
@@ -149,9 +151,9 @@ A gradient-boosting model evaluated with the encoded feature representation.
 
 `197.387`
 
-\---
+---
 
-### 6\. LightGBM Regressor
+### 6. LightGBM Regressor
 
 A gradient-boosting model optimized for efficient tree-based learning.
 
@@ -159,7 +161,7 @@ A gradient-boosting model optimized for efficient tree-based learning.
 
 `205.249`
 
-\---
+---
 
 ## Model Performance
 
@@ -174,11 +176,11 @@ A gradient-boosting model optimized for efficient tree-based learning.
 
 The validation experiments show a substantial improvement when moving from linear models to tree-based ensemble methods.
 
-\---
+---
 
 ## Cross-Validation
 
-LightGBM was additionally evaluated using **5-Fold K-Fold Cross-Validation** with shuffling and `random\\\\\\\_state=42`.
+LightGBM was additionally evaluated using **5-Fold K-Fold Cross-Validation** with shuffling and `random_state=42`.
 
 Fold RMSE values:
 
@@ -194,7 +196,7 @@ Fold RMSE values:
 
 Early stopping was used during the LightGBM cross-validation process.
 
-\---
+---
 
 ## Final Model
 
@@ -207,10 +209,10 @@ The CatBoost model was then used to generate predictions for the competition tes
 The trained model was also saved as:
 
 ```text
-cat\\\\\\\_model.pkl
+cat_model.pkl
 ```
 
-\---
+---
 
 ## Kaggle Submission
 
@@ -224,18 +226,40 @@ target
 The final prediction file is saved as:
 
 ```text
-Cat\\\\\\\_Submission.csv
+Cat_Submission.csv
 ```
 
 The notebook uses the CatBoost model to generate the competition predictions.
 
 ### Kaggle Leaderboard Result
 
-**Kaggle Public Leaderboard RMSE: 202.83542**
+| Metric | Value |
+|-|-:|
+| Local validation RMSE (CatBoost) | 197.387 |
+| **Kaggle leaderboard RMSE** | **202.83542** |
+| **Leaderboard rank** | **8th** |
 
-This is the recorded competition leaderboard result for the submitted predictions.
+The leaderboard score is only about 5.4 RMSE (roughly 2.8%) higher than the local validation score, which indicates that the validation setup gave a realistic estimate of performance on unseen data.
 
-\---
+---
+
+## Analysis
+
+* **The relationship is strongly nonlinear.** Moving from Linear Regression (429.3) to tree-based models (about 197-220) cuts the error by more than half, and even a degree-4 polynomial (383.3) stays far behind.
+* **The top boosting models are close.** CatBoost (197.4), LightGBM (205.2), and XGBoost (210.6) are within about 13 RMSE of each other, while the LightGBM fold scores range from 203.4 to 222.5 (a spread of about 19). So the ranking among these three should be read as approximate rather than a clear winner.
+* **The target is right-skewed** (mean 729 vs. median 545, maximum 3,556), so a few large values can dominate RMSE.
+
+---
+
+## Limitations & Future Improvements
+
+* **Cross-validate every model.** Cross-validation was run only for LightGBM, while the final model was selected from a single validation split. Running the same K-Fold on CatBoost and XGBoost would make the comparison more reliable.
+* **Hyperparameter tuning:** systematic tuning (for example with Optuna or randomized search) could improve the boosting models.
+* **Target transformation:** because of the skewed target, training on `log1p(target)` and converting predictions back is worth testing.
+* **Feature engineering and feature importance:** interactions between features, and an analysis of which features drive the predictions, were not explored.
+* **Ensembling:** blending or stacking CatBoost, LightGBM, and XGBoost is a natural next step, since their errors are likely not identical.
+
+---
 
 ## Key ML Concepts Demonstrated
 
@@ -258,7 +282,7 @@ This is the recorded competition leaderboard result for the submitted prediction
 * Kaggle submission generation
 * Model serialization with Joblib
 
-\---
+---
 
 ## Technologies
 
@@ -274,14 +298,14 @@ This is the recorded competition leaderboard result for the submitted prediction
 * Joblib
 * Jupyter Notebook
 
-\---
+---
 
 ## Project Structure
 
 ```text
 Regression-Project/
-├── Regression\\\\\\\_Project.ipynb
-├── Cat\\\\\\\_Submission.csv
+├── Regression_Project.ipynb
+├── Cat_Submission.csv
 ├── README.md
 ├── requirements.txt
 └── .gitignore
@@ -289,24 +313,24 @@ Regression-Project/
 
 Competition data and the saved model can remain local and should be excluded from version control when appropriate.
 
-\---
+---
 
 ## How to Run
 
-### 1\. Clone the repository
+### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Ahmed-Abdelfattah-tech/Regression-Project.git
 cd Regression-Project
 ```
 
-### 2\. Install dependencies
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3\. Add the competition data
+### 3. Add the competition data
 
 Place the required files in the project directory:
 
@@ -315,17 +339,17 @@ train.csv
 test.csv
 ```
 
-### 4\. Run the notebook
+### 4. Run the notebook
 
 Open:
 
 ```text
-Regression\\\\\\\_Project.ipynb
+Regression_Project.ipynb
 ```
 
 and execute the cells sequentially.
 
-\---
+---
 
 ## Key Takeaways
 
@@ -334,9 +358,10 @@ and execute the cells sequentially.
 * Random Forest and gradient-boosting models provided a large improvement in RMSE.
 * Among the recorded validation experiments, CatBoost achieved the lowest RMSE at **197.387**.
 * Cross-validation with LightGBM produced an average RMSE of **211.271**, providing an additional estimate of model performance across multiple folds.
+* The final submission scored **202.83542 RMSE (8th place)**, close to the local validation result, which suggests the validation setup was reliable.
 * The workflow concludes with generating a competition-ready submission file.
 
-\---
+---
 
 ## Author
 
