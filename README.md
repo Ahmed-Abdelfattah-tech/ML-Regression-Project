@@ -367,5 +367,3 @@ and execute the cells sequentially.
 
 **Ahmed Abdelfattah**
 
-Aspiring **Applied AI / LLM Engineer**
-
