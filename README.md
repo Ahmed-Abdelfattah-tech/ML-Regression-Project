@@ -239,7 +239,9 @@ The notebook uses the CatBoost model to generate the competition predictions.
 | **Kaggle leaderboard RMSE** | **202.83542** |
 | **Leaderboard rank** | **8th** |
 
-The leaderboard score is only about 5.4 RMSE (roughly 2.8%) higher than the local validation score, which indicates that the validation setup gave a realistic estimate of performance on unseen data.
+The leaderboard score is only about 5.4 RMSE (roughly 2.8%) higher than the local validation score, which indicates that the validation setup gave a realistic estimate of performance on unseen data. The gap to 7th place on the leaderboard was only about 0.02 RMSE.
+
+![Kaggle Leaderboard](Kaggle_Leaderboard.png)
 
 ---
 
@@ -306,6 +308,7 @@ The leaderboard score is only about 5.4 RMSE (roughly 2.8%) higher than the loca
 Regression-Project/
 ├── Regression_Project.ipynb
 ├── Cat_Submission.csv
+├── Kaggle_Leaderboard.png
 ├── README.md
 ├── requirements.txt
 └── .gitignore
